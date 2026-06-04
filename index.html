@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кейс: Система УРВ</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --accent: #c8f542;
+    --accent2: #4af0c4;
+    --text: #f0ede6;
+    --muted: #888;
+    --border: #2a2a2a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Golos Text', sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(14,14,14,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .tag {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 80px 48px 64px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 80% 30%, rgba(200,245,66,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 60% at 10% 80%, rgba(74,240,196,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    max-width: 960px;
+  }
+
+  .hero-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-label::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-desc {
+    font-size: 19px;
+    color: #bbb;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 48px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    margin-top: 64px;
+  }
+
+  .meta-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .meta-item span {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 96px 48px;
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-full {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 48px;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  p { margin-bottom: 20px; color: #ccc; }
+  p:last-child { margin-bottom: 0; }
+
+  /* PROBLEM */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .problem-card {
+    background: var(--surface);
+    padding: 40px;
+  }
+
+  .problem-card .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .problem-card h3 { color: var(--text); font-size: 18px; margin-bottom: 10px; }
+  .problem-card p { font-size: 15px; color: var(--muted); margin-bottom: 0; }
+
+  /* SOLUTION */
+  .solution-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .solution-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .solution-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .solution-card.alt::before { background: var(--accent2); }
+
+  .solution-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(200,245,66,0.1);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .solution-badge.alt {
+    background: rgba(74,240,196,0.1);
+    color: var(--accent2);
+  }
+
+  .solution-card ul {
+    list-style: none;
+    margin-top: 16px;
+  }
+
+  .solution-card ul li {
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    font-size: 15px;
+    color: #bbb;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .solution-card ul li::before {
+    content: '→';
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .solution-card.alt ul li::before { color: var(--accent2); }
+
+  /* ARTIFACTS */
+  .artifacts-section {
+    background: var(--bg);
+    padding: 96px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .artifacts-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 48px;
+    margin-bottom: 16px;
+  }
+
+  .artifacts-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700;
+    padding: 0 48px;
+    margin-bottom: 56px;
+    max-width: 1200px;
+  }
+
+  .artifact-block {
+    padding: 64px 48px;
+    border-top: 1px solid var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .artifact-block:nth-child(even) {
+    direction: rtl;
+  }
+
+  .artifact-block:nth-child(even) > * {
+    direction: ltr;
+  }
+
+  .artifact-info {}
+
+  .artifact-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 900;
+    color: var(--border);
+    line-height: 0.9;
+    margin-bottom: 24px;
+  }
+
+  .artifact-info h3 {
+    font-size: 20px;
+    font-family: 'Playfair Display', serif;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .artifact-info p {
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .artifact-img {
+    border: 1px solid var(--border);
+    background: #fff;
+    overflow: hidden;
+    cursor: zoom-in;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .artifact-img:hover {
+    transform: scale(1.01);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .artifact-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* STATUS MODEL */
+  .status-flow {
+    display: flex;
+    gap: 0;
+    margin-top: 48px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .status-step {
+    flex: 1;
+    min-width: 160px;
+    padding: 24px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: none;
+    position: relative;
+    text-align: center;
+  }
+
+  .status-step:last-child { border-right: 1px solid var(--border); }
+
+  .status-step::after {
+    content: '›';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: var(--muted);
+    z-index: 2;
+    background: var(--bg);
+    padding: 0 2px;
+  }
+
+  .status-step:last-child::after { display: none; }
+
+  .status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 18px;
+  }
+
+  .status-step .status-name {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .status-step .status-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .s-draft .status-icon { background: rgba(100,100,100,0.15); color: #888; }
+  .s-review .status-icon { background: rgba(255,180,0,0.12); color: #ffb400; }
+  .s-approved .status-icon { background: rgba(200,245,66,0.12); color: var(--accent); }
+  .s-hr .status-icon { background: rgba(74,240,196,0.12); color: var(--accent2); }
+  .s-done .status-icon { background: rgba(120,200,255,0.12); color: #78c8ff; }
+
+  /* RESULTS */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    padding: 40px 32px;
+    text-align: center;
+  }
+
+  .result-card .r-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .result-card .r-before {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-bottom: 8px;
+  }
+
+  .result-card .r-after {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.3;
+  }
+
+  /* TOOLS */
+  .tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 36px;
+  }
+
+  .tool-chip {
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface);
+    letter-spacing: 0.02em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .tool-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* LIGHTBOX */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    cursor: zoom-out;
+  }
+
+  .lightbox.active { display: flex; }
+
+  .lightbox img {
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border: 1px solid var(--border);
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+  }
+
+  footer .foot-left {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  footer .foot-right {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-content { animation: fadeUp 0.8s ease both; }
+  .hero-meta { animation: fadeUp 0.8s 0.2s ease both; }
+
+  /* LANG SWITCHER */
+  .lang-switch {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 3px;
+  }
+
+  .lang-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Golos Text', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .lang-btn.active {
+    background: var(--accent);
+    color: #0e0e0e;
+  }
+
+  .lang-btn:not(.active):hover { color: var(--text); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    header { padding: 20px 24px; }
+    .hero { padding: 60px 24px 48px; }
+    .hero-meta { flex-direction: column; gap: 24px; }
+    section { padding: 64px 24px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .solution-grid { grid-template-columns: 1fr; }
+    .artifact-block { grid-template-columns: 1fr; gap: 32px; direction: ltr !important; }
+    .artifact-block:nth-child(even) { direction: ltr; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+    .status-flow { flex-direction: column; }
+    .status-step { border-right: 1px solid var(--border); border-bottom: none; }
+    .status-step:last-child { border-bottom: 1px solid var(--border); }
+    .status-step::after { display: none; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+    .artifacts-section { padding: 64px 0; }
+    .artifacts-title, .artifacts-label { padding: 0 24px; }
+    .artifact-block { padding: 48px 24px; }
+    .section-inner { padding: 0 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo" data-ru="Портфолио" data-en="Portfolio">Портфолио</a>
+  <div class="lang-switch">
+    <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-label" data-ru="Бизнес-анализ · Автоматизация HR-процессов" data-en="Business Analysis · HR Process Automation">Бизнес-анализ · Автоматизация HR-процессов</div>
+    <h1 data-ru="Система<br>учёта <em>временных</em><br>отсутствий" data-en="Absence<br><em>Tracking</em><br>System">Система<br>учёта <em>временных</em><br>отсутствий</h1>
+    <p class="hero-desc" data-ru="Спроектировала процесс согласования УРВ-2 и УРВ-4: от заявки сотрудника до кадрового дела. Ноль ручных переносов данных, полная история отсутствий." data-en="Designed the URV-2 and URV-4 approval workflow: from employee request to HR file. Zero manual data transfers, complete absence history.">Спроектировала процесс согласования УРВ-2 и УРВ-4: от заявки сотрудника до кадрового дела. Ноль ручных переносов данных, полная история отсутствий.</p>
+  </div>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <label data-ru="Роль" data-en="Role">Роль</label>
+      <span data-ru="Бизнес-аналитик" data-en="Business Analyst">Бизнес-аналитик</span>
+    </div>
+    <div class="meta-item">
+      <label data-ru="Инструменты" data-en="Tools">Инструменты</label>
+      <span data-ru="Корпоративный портал, Битрикс24, БД «Кадры»" data-en="Corporate Portal, Bitrix24, HR Database">Корпоративный портал, Битрикс24, БД «Кадры»</span>
+    </div>
+    <div class="meta-item">
+      <label data-ru="Артефакты" data-en="Artifacts">Артефакты</label>
+      <span data-ru="BPMN-схема, статусная модель, UI-макеты" data-en="BPMN diagram, status model, UI mockups">BPMN-схема, статусная модель, UI-макеты</span>
+    </div>
+    <div class="meta-item">
+      <label data-ru="Хранение" data-en="Retention">Хранение</label>
+      <span>5 лет / 5 years</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section>
+  <div class="hero-label" style="margin-bottom: 24px;" data-ru="Проблема" data-en="Problem">Проблема</div>
+  <h2 data-ru="Что не работало<br>до автоматизации" data-en="What failed<br>before automation">Что не работало<br>до автоматизации</h2>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="num">01</div>
+      <h3 data-ru="Нет фиксации в реальном времени" data-en="No real-time tracking">Нет фиксации в реальном времени</h3>
+      <p data-ru="Сотрудник уходил на несколько часов — факт отсутствия нигде не отражался. Кадровые документы заполнялись вручную или не заполнялись вовсе." data-en="An employee left for a few hours and the absence was recorded nowhere. HR documents were filled manually, or not at all.">Сотрудник уходил на несколько часов — факт отсутствия нигде не отражался. Кадровые документы заполнялись вручную или не заполнялись вовсе.</p>
+    </div>
+    <div class="problem-card">
+      <div class="num">02</div>
+      <h3 data-ru="Руководитель узнавал постфактум" data-en="Managers learned after the fact">Руководитель узнавал постфактум</h3>
+      <p data-ru="Согласование происходило устно или в мессенджерах. Ни одного структурированного канала передачи информации не существовало." data-en="Approvals happened verbally or in chats. No structured information channel existed.">Согласование происходило устно или в мессенджерах. Ни одного структурированного канала передачи информации не существовало.</p>
+    </div>
+    <div class="problem-card">
+      <div class="num">03</div>
+      <h3 data-ru="Задержки в кадровых документах" data-en="HR document delays">Задержки в кадровых документах</h3>
+      <p data-ru="Данные об отсутствиях попадали в БД с опозданием — или не попадали вовсе. Кадровое делопроизводство страдало." data-en="Absence data reached the database late, or never. HR record-keeping suffered.">Данные об отсутствиях попадали в БД с опозданием — или не попадали вовсе. Кадровое делопроизводство страдало.</p>
+    </div>
+    <div class="problem-card">
+      <div class="num">04</div>
+      <h3 data-ru="Отсутствие истории" data-en="No absence history">Отсутствие истории</h3>
+      <p data-ru="Накопить статистику по отсутствиям было невозможно: данных для анализа не существовало." data-en="Building absence statistics was impossible — the data simply didn't exist.">Накопить статистику по отсутствиям было невозможно: данных для анализа не существовало.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section>
+  <div class="hero-label" style="margin-bottom: 24px;" data-ru="Решение" data-en="Solution">Решение</div>
+  <h2 data-ru="Две формы заявки,<br>один сквозной процесс" data-en="Two request forms,<br>one end-to-end process">Две формы заявки,<br>один сквозной процесс</h2>
+  <p style="max-width: 600px;" data-ru="Спроектировала систему из двух типов заявок с разной логикой согласования и единым маршрутом данных в кадровую базу." data-en="Designed a system of two request types with different approval logic and a unified data route into the HR database.">Спроектировала систему из двух типов заявок с разной логикой согласования и единым маршрутом данных в кадровую базу.</p>
+
+  <div class="solution-grid">
+    <div class="solution-card">
+      <div class="solution-badge">URV-2</div>
+      <h3 data-ru="Отсутствие до 3 часов" data-en="Absence up to 3 hours">Отсутствие до 3 часов</h3>
+      <p style="font-size: 15px; color: var(--muted);" data-ru="Сотрудник подаёт заявку в портале. Система валидирует поля и лимит длительности." data-en="The employee submits a request in the portal. The system validates fields and the duration limit.">Сотрудник подаёт заявку в портале. Система валидирует поля и лимит длительности.</p>
+      <ul>
+        <li data-ru="До 30 минут — автосогласование без руководителя" data-en="Under 30 minutes — auto-approved without a manager">До 30 минут — автосогласование без руководителя</li>
+        <li data-ru="От 30 минут до 3 часов — ручное согласование" data-en="30 minutes to 3 hours — manual approval required">От 30 минут до 3 часов — ручное согласование</li>
+        <li data-ru="Уведомление сотруднику о результате" data-en="Employee receives notification of the decision">Уведомление сотруднику о результате</li>
+        <li data-ru="Данные уходят в БД «Кадры» автоматически" data-en="Data flows to the HR database automatically">Данные уходят в БД «Кадры» автоматически</li>
+      </ul>
+    </div>
+    <div class="solution-card alt">
+      <div class="solution-badge alt">URV-4</div>
+      <h3 data-ru="Отсутствие до 8 часов" data-en="Absence up to 8 hours">Отсутствие до 8 часов</h3>
+      <p style="font-size: 15px; color: var(--muted);" data-ru="Та же форма, расширенный лимит. Все заявки проходят через руководителя." data-en="Same form, extended limit. All requests go through the manager.">Та же форма, расширенный лимит. Все заявки проходят через руководителя.</p>
+      <ul>
+        <li data-ru="Уведомление руководителю в Битрикс24 и на почту" data-en="Manager notified via Bitrix24 and email">Уведомление руководителю в Битрикс24 и на почту</li>
+        <li data-ru="Кнопки «Согласовать» / «Отклонить» прямо в интерфейсе" data-en="Approve / Reject buttons directly in the interface">Кнопки «Согласовать» / «Отклонить» прямо в интерфейсе</li>
+        <li data-ru="При отказе — обязательное поле с причиной" data-en="Rejection requires a mandatory reason field">При отказе — обязательное поле с причиной</li>
+        <li data-ru="Те же маршруты данных в кадровую базу" data-en="Same data routes to the HR database">Те же маршруты данных в кадровую базу</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS MODEL inline -->
+<section style="padding-top: 0;">
+  <div class="hero-label" style="margin-bottom: 24px;" data-ru="Жизненный цикл заявки" data-en="Request lifecycle">Жизненный цикл заявки</div>
+  <h2 data-ru="10 статусов,<br>ни один не потеряется" data-en="10 statuses,<br>none ever lost">10 статусов,<br>ни один не потеряется</h2>
+  <div class="status-flow">
+    <div class="status-step s-draft">
+      <div class="status-icon">✏️</div>
+      <div class="status-name" data-ru="Черновик" data-en="Draft">Черновик</div>
+      <div class="status-desc" data-ru="Создана, не отправлена" data-en="Created, not sent">Создана, не отправлена</div>
+    </div>
+    <div class="status-step s-review">
+      <div class="status-icon">⏳</div>
+      <div class="status-name" data-ru="На рассмотрении" data-en="Under review">На рассмотрении</div>
+      <div class="status-desc" data-ru="Ожидает решения" data-en="Awaiting decision">Ожидает решения</div>
+    </div>
+    <div class="status-step s-approved">
+      <div class="status-icon">✓</div>
+      <div class="status-name" data-ru="Согласовано" data-en="Approved">Согласовано</div>
+      <div class="status-desc" data-ru="Авто или вручную" data-en="Auto or manual">Авто или вручную</div>
+    </div>
+    <div class="status-step s-hr">
+      <div class="status-icon">🗄</div>
+      <div class="status-name" data-ru="Передано в кадры" data-en="Sent to HR">Передано в кадры</div>
+      <div class="status-desc" data-ru="Данные в БД" data-en="Data in DB">Данные в БД</div>
+    </div>
+    <div class="status-step s-done">
+      <div class="status-icon">✦</div>
+      <div class="status-name" data-ru="Завершено" data-en="Complete">Завершено</div>
+      <div class="status-desc" data-ru="Процесс закрыт" data-en="Process closed">Процесс закрыт</div>
+    </div>
+  </div>
+  <p style="margin-top: 20px; font-size: 14px; color: var(--muted);" data-ru="Дополнительно: Отклонено, Удалено, Отозвано, Ошибка передачи в кадры, Ожидает повторной передачи — с автоповтором отправки при сбое." data-en="Additional statuses: Rejected, Deleted, Withdrawn, HR Transfer Error, Awaiting Retry — with automatic resend on failure.">Дополнительно: Отклонено, Удалено, Отозвано, Ошибка передачи в кадры, Ожидает повторной передачи — с автоповтором отправки при сбое.</p>
+</section>
+
+<!-- ARTIFACTS -->
+<div class="artifacts-section">
+  <div class="artifacts-label" data-ru="Артефакты проекта" data-en="Project artifacts">Артефакты проекта</div>
+  <div class="artifacts-title" data-ru="Документация,<br>которую я разработала" data-en="Documentation<br>I designed">Документация,<br>которую я разработала</div>
+
+  <div class="artifact-block">
+    <div class="artifact-info">
+      <div class="artifact-num">01</div>
+      <h3 data-ru="BPMN-схема бизнес-процесса" data-en="Business process BPMN diagram">BPMN-схема бизнес-процесса</h3>
+      <p data-ru="Четыре дорожки: сотрудник, система, руководитель, БД «Кадры». Полный маршрут управления и сообщений." data-en="Four swim lanes: employee, system, manager, HR database. Complete control and message flow.">Четыре дорожки: сотрудник, система, руководитель, БД «Кадры». Полный маршрут управления и сообщений.</p>
+    </div>
+    <div class="artifact-img" onclick="openLightbox(this)">
+      <img src="/mnt/user-data/uploads/D59D7354-3A38-4605-B0EA-F7665DB9A0F1.png" alt="BPMN diagram">
+    </div>
+  </div>
+
+  <div class="artifact-block">
+    <div class="artifact-info">
+      <div class="artifact-num">02</div>
+      <h3 data-ru="Форма УРВ-2 в портале сотрудника" data-en="URV-2 form in the employee portal">Форма УРВ-2 в портале сотрудника</h3>
+      <p data-ru="Поля: дата, время начала и окончания, длительность (считается автоматически), причина. Подсказки об ограничениях встроены прямо в форму." data-en="Fields: date, start and end time, duration (auto-calculated), reason. Constraint hints are embedded directly in the form.">Поля: дата, время начала и окончания, длительность (считается автоматически), причина. Подсказки об ограничениях встроены прямо в форму.</p>
+    </div>
+    <div class="artifact-img" onclick="openLightbox(this)" style="background: #1a2a3a;">
+      <img src="/mnt/user-data/uploads/D66B2367-FA77-411A-95E9-48191781A528.jpeg" alt="URV-2 form">
+    </div>
+  </div>
+
+  <div class="artifact-block">
+    <div class="artifact-info">
+      <div class="artifact-num">03</div>
+      <h3 data-ru="Портал руководителя" data-en="Manager portal">Портал руководителя</h3>
+      <p data-ru="Список заявок подразделения с фильтрами по статусу. Экран принятия решения: вся информация об отсутствии, кнопки согласования, обязательная причина при отказе." data-en="Department request list with status filters. Decision screen: full absence details, approval buttons, mandatory rejection reason.">Список заявок подразделения с фильтрами по статусу. Экран принятия решения: вся информация об отсутствии, кнопки согласования, обязательная причина при отказе.</p>
+    </div>
+    <div class="artifact-img" onclick="openLightbox(this)" style="background: #1a2a3a;">
+      <img src="/mnt/user-data/uploads/9FA4E111-1FA4-41CB-89AD-FA82DFE3BD55.png" alt="Manager portal">
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<section>
+  <div class="hero-label" style="margin-bottom: 24px;" data-ru="Результат" data-en="Results">Результат</div>
+  <h2 data-ru="До и после" data-en="Before and after">До и после</h2>
+  <div class="results-grid">
+    <div class="result-card">
+      <div class="r-icon">📋</div>
+      <div class="r-before" data-ru="Фиксация вручную или никак" data-en="Manual recording or nothing">Фиксация вручную или никак</div>
+      <div class="r-after" data-ru="Каждое отсутствие фиксируется в момент подачи" data-en="Every absence recorded at submission">Каждое отсутствие фиксируется в момент подачи</div>
+    </div>
+    <div class="result-card">
+      <div class="r-icon">🔔</div>
+      <div class="r-before" data-ru="Руководитель узнавал постфактум" data-en="Manager learned after the fact">Руководитель узнавал постфактум</div>
+      <div class="r-after" data-ru="Уведомление в двух каналах сразу" data-en="Notification in two channels simultaneously">Уведомление в двух каналах сразу</div>
+    </div>
+    <div class="result-card">
+      <div class="r-icon">🗄️</div>
+      <div class="r-before" data-ru="Кадровые данные — с задержкой" data-en="HR data arrived late">Кадровые данные — с задержкой</div>
+      <div class="r-after" data-ru="Данные в БД после согласования без ручного переноса" data-en="Data reaches HR database after approval, no manual transfer">Данные в БД после согласования без ручного переноса</div>
+    </div>
+    <div class="result-card">
+      <div class="r-icon">📁</div>
+      <div class="r-before" data-ru="Нет истории по сотруднику" data-en="No employee absence history">Нет истории по сотруднику</div>
+      <div class="r-after" data-ru="Кадровое дело хранится 5 лет" data-en="HR file retained for 5 years">Кадровое дело хранится 5 лет</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section style="border-bottom: none;">
+  <div class="hero-label" style="margin-bottom: 24px;" data-ru="Инструменты и стек" data-en="Tools and stack">Инструменты и стек</div>
+  <h2 data-ru="Чем пользовалась<br>в проекте" data-en="What I used<br>in the project">Чем пользовалась<br>в проекте</h2>
+  <div class="tools-list">
+    <div class="tool-chip">BPMN</div>
+    <div class="tool-chip" data-ru="Корпоративный портал" data-en="Corporate Portal">Корпоративный портал</div>
+    <div class="tool-chip">Bitrix24</div>
+    <div class="tool-chip" data-ru="БД «Кадры»" data-en="HR Database">БД «Кадры»</div>
+    <div class="tool-chip" data-ru="UI-прототипирование" data-en="UI Prototyping">UI-прототипирование</div>
+    <div class="tool-chip" data-ru="Статусные модели" data-en="Status Models">Статусные модели</div>
+    <div class="tool-chip" data-ru="Требования к формам" data-en="Form Requirements">Требования к формам</div>
+    <div class="tool-chip" data-ru="Валидация данных" data-en="Data Validation">Валидация данных</div>
+    <div class="tool-chip" data-ru="Интеграция систем" data-en="System Integration">Интеграция систем</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-left" data-ru="Система УРВ — кейс из портфолио" data-en="URV System — portfolio case study">Система УРВ — кейс из портфолио</div>
+  <div class="foot-right" data-ru="Бизнес-аналитик · 2026" data-en="Business Analyst · 2026">Бизнес-аналитик · 2026</div>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  function openLightbox(el) {
+    const img = el.querySelector('img');
+    document.getElementById('lightbox-img').src = img.src;
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // LANGUAGE SWITCHER
+  function setLang(lang) {
+    document.querySelectorAll('[data-ru]').forEach(el => {
+      const text = el.getAttribute('data-' + lang);
+      if (!text) return;
+      // Handle elements with innerHTML (h1, h2 with <br> and <em>)
+      if (el.tagName === 'H1' || el.tagName === 'H2') {
+        el.innerHTML = text;
+      } else {
+        el.textContent = text;
+      }
+    });
+
+    // Update page title
+    document.title = lang === 'en' ? 'Case Study: URV System' : 'Кейс: Система УРВ';
+    document.documentElement.lang = lang;
+
+    // Update buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase() === lang);
+    });
+  }
+
+  // Scroll fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.problem-card, .solution-card, .result-card, .artifact-block, .status-step').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
